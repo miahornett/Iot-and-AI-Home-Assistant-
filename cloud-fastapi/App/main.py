@@ -1,10 +1,14 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from . import mongo
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Mongo will go here later
-    yield
+    mongo.connect()
+    try:
+        yield
+    finally:
+        mongo.close()
 
 app = FastAPI(lifespan=lifespan)
 
