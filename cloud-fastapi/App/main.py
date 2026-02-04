@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import mongo
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     mongo.connect()
@@ -14,7 +15,7 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello from MongoDB-connected FastAPI!"}
+    return {"message": "Test for auto-deploy trigger"}
 
 @app.get("/health")
 async def health():
