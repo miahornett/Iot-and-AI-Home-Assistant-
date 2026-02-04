@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from . import mongo
+import mongo
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
