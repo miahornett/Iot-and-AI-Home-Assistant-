@@ -13,9 +13,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
-def root():
-    return {"message": "Hello World"}
+async def root():
+    return {"message": "Hello from MongoDB-connected FastAPI!"}
 
 @app.get("/health")
-def health():
+async def health():
     return {"status": "ok"}
+
+@app.post("/test-write")
+async def test_write():
+    database = mongo.db()
+    result = await database["test"].insert_one({"hello": "world"})
+    return {"inserted_id": str(result.inserted_id)}
