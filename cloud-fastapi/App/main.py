@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi import HTTPException
+from pydantic import BaseModel
+from datetime import datetime, timezone
 import mongo
 
 @asynccontextmanager
@@ -40,3 +42,28 @@ async def db_check():
     except Exception as e:
         # Return the actual error so we can diagnose immediately
         raise HTTPException(status_code=500, detail=str(e))
+
+class ResidentIn(BaseModel):
+    name: str
+    room: str
+    notes: str | None = None
+
+@app.post("/residents")
+async def create_resident(payload: ResidentIn):
+    database = mongo.db()
+    doc = payload.model_dump()
+    doc["created_at"] = datetime.now(timezone.utc)
+
+    result = await database["residents"].insert_one(doc)
+    return {"inserted_id": str(result.inserted_id)}
+
+@app.get("/residents")
+async def list_residents(limit: int = 20):
+    database = mongo.db()
+    cursor = database["residents"].find({}).sort("created_at", -1).limit(limit)
+    items = await cursor.to_list(length=limit)
+
+    # convert ObjectId to string for JSON
+    for it in items:
+        it["_id"] = str(it["_id"])
+    return {"items": items}
