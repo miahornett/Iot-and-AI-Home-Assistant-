@@ -9,7 +9,7 @@
 // ==========================================
 const char* ssid = "IoT-Lab";             
 const char* password = "ELEC423_2526!";       
-const char* mqtt_server = "192.168.1.106";  
+const char* mqtt_server = "192.168.1.101";  
 
 // CRUCIAL: Must match the Common Name (CN) generated on the Pi
 const char* mqtt_client_id = "ESP32_Bedroom_Pressure"; 
@@ -62,4 +62,175 @@ tSmw
 const char* client_cert = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIDjTCCAnWgAwIBAgIUdKrpQl0A3VnP8WR/WeoleuRttJcwDQYJKoZIhvcNAQEL
-BQAwVzELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNV
+BQAwVzELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
+GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEQMA4GA1UEAwwHTUVOR19DQTAeFw0y
+NjAyMjcxNDIyMzZaFw0zNjAyMjUxNDIyMzZaMGYxCzAJBgNVBAYTAkFVMRMwEQYD
+VQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBM
+dGQxHzAdBgNVBAMMFkVTUDMyX0JlZHJvb21fUHJlc3N1cmUwggEiMA0GCSqGSIb3
+DQEBAQUAA4IBDwAwggEKAoIBAQC/AkH7XzCk0gpOmMj+U+k4z93YeAtCJzB8yRpO
+gfJNL9ULcXjyt8kIvF2TmAM8mqKNyse6jLX+HF1VKubOHkPjpZ/ht4qWEfsc0403
+3tDUIB6XtlELhLe7kYWywkODrSY3jc3rvudSy6CvGhKS8Sq04CBLRQG2t2ICU1Z+
+UOOXmbKhnaVIoQJ1/KqJFLzLSnlXtxNgMjoBNy9p3DrThfocwyQJR1SNn5iyW+NQ
+QWclNDWsY3hs8/fg3Ae63Ia6gnH2pakC2StDLoRc4gAi16vaIlvZW52ReDjZJN5h
+mt4ADDlPOKRmodZ2Gm943Mr5h9Mb0naUpazrJOCV348EShdlAgMBAAGjQjBAMB0G
+A1UdDgQWBBRoWNSBqC9IDX6HdIIgkomrTdqHHzAfBgNVHSMEGDAWgBSwjLA0RgzF
+He54i9GWLKbkD4P1cTANBgkqhkiG9w0BAQsFAAOCAQEAM3mdsf29j/KBpmFMz60m
+VUTSOv2FyyBOzImsdpRQl9bri2iYqKvc/fhIODpB8cYhw1yZOkkrlH1TcCIMyqxJ
+RmDS386vtLgAYcu7WsBYqVUtk5zI1a0XN0rXjDFifr/nBrBLGd8M6Jxm02krdDSN
+EjVA8dtx039A1Yd96bkUF1QmXiowLTNEPJ04GvR+PQIytddnHcIXX9Uv+q5fajs6
+Y1YR2TQwndRJyvyuixHNt/nmaRjX7D8V91ATu5htyT2hOK1HLtlrGTYpzBJKYaTA
+MMt3aeeWwFi58VxNS4CE5tJopVVRbDphDAUEiY1Q5Yd3fuumzVXLTj3oPyzT1KuK
+eA==
+-----END CERTIFICATE-----
+)EOF";
+
+// 2c. The Client Private Key
+const char* client_key = R"EOF(
+-----BEGIN PRIVATE KEY-----
+MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC/AkH7XzCk0gpO
+mMj+U+k4z93YeAtCJzB8yRpOgfJNL9ULcXjyt8kIvF2TmAM8mqKNyse6jLX+HF1V
+KubOHkPjpZ/ht4qWEfsc04033tDUIB6XtlELhLe7kYWywkODrSY3jc3rvudSy6Cv
+GhKS8Sq04CBLRQG2t2ICU1Z+UOOXmbKhnaVIoQJ1/KqJFLzLSnlXtxNgMjoBNy9p
+3DrThfocwyQJR1SNn5iyW+NQQWclNDWsY3hs8/fg3Ae63Ia6gnH2pakC2StDLoRc
+4gAi16vaIlvZW52ReDjZJN5hmt4ADDlPOKRmodZ2Gm943Mr5h9Mb0naUpazrJOCV
+348EShdlAgMBAAECggEAT51MzE5ac7C6rBUB3gQyt0PpJ6Otqaa1DqYyCVwfly2j
+QtBKxfx11mbRKEZZvwaDT8+gXXDuIJtJCclGh85UpMvxrr72jGO1Q8gn2gxNBcXX
+iovrDv6EKLHYxPA0/OsMfWZlWOhq+fc3JBUdfdL45ohu3YDHXJXmS6rZ5++mVZb4
+o967CgzdgqIpnlbE6prQQN9B72+dQBUSDvPg67JRywtnO5Zbes+zM5lXqNpq/Co0
+AWLX7LSi+ae3SYCrWIjwKPS8auxoRW5GJUUuFCvISsN/58ZA3BGBeH0YBmAVJ3Jj
+bZ4dLchzUiIuPkcdjdYqbZXMP1kb2jOaH/jzhv4uVwKBgQD4kgPg++LyT4I0PLVu
+YwtFHeZJ/9AzyrgxBRbyyZpjX2pxmVx56C30bWNKGPh4x0vujMW735eS6Zt/kQ/g
+BDgV1U5D6QRNBXX3FzHzNBYnO39QJIaKxcuDaHYRb+l07E7xLfk2fr6JcWGOM7dP
+7++kcszvK+x2MD2RyQRt7xHnvwKBgQDEt8ySO+I/EcGOvVDDiPOjIfIpKXz3SDNk
+ObozXT7uSACksGhK6+OEJAPuWcRdxqNfETHUJ3ekBSOXxQk+sJcA/zJkak/eb0qs
+axw4H4gnmLOxXbPsus/JUBBz6MZf37eTWxkx60PhEN9bOAEIAFCCoeDYZIHyiz6c
+XlOJLvTp2wKBgQDa4VCzE3qjHmor721f16073nlDnhRLFu4clDvB7M6bRJDpmT76
+Rf35Zz1wKQ7a47u0Qpd3uQqyniyEJ0uQWoa8iwkQ+aYE4JMg0nb0jmAXieewvYkP
+t95eR2T4M9CiWdelvnLdjrvfMUzTOCzqIgCmkURuMwJUjGQa9KSG3Wap5wKBgQCg
+BqjbGO3uwoIDnQwTVNhlj5rQU1i+TLTJxpArcqJb8qTbVEozEHuvpiCwh8PPSWTj
+VDiFzmlsO2X986KWpc7hV7hlqXo5h61mX2fAXB5Fn9ol4gUZActAh+oqcGTX30UW
+EViInEtGzpP0P7XPDXpxGkCvp+tyJEYVrEImadWAWwKBgQCBePWnQd5XGL99UtV1
+Pd6UL3csGBVi2gFjKAzVASJxupGMwiXo/2xhSQuL8/zEZuQFSCAqg4TyAJRfUJss
+r3aJosof2AYtahPT+DLPyw/eKq30dCZN+euWOToSo1AvF07NwmHDDr5qk5XkwxF3
+CmySMDAJ4q6v0oRuRYbNzokxYw==
+-----END PRIVATE KEY-----
+)EOF";
+
+WiFiClientSecure espClient; 
+PubSubClient client(espClient);
+
+// ==========================================
+// 4. HELPER FUNCTIONS
+// ==========================================
+void setup_wifi() {
+  Serial.print("Connecting to WiFi...");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi connected.");
+}
+
+void syncTime() {
+  // Only sync if the RTC has lost track of time to save battery
+  time_t now = time(nullptr);
+  if (now < 1672531200) { 
+    configTime(0, 0, "pool.ntp.org", "time.google.com");
+    Serial.print("Syncing Clock for TLS (First boot only): ");
+    while (now < 1672531200) { 
+      delay(500);
+      Serial.print(".");
+      now = time(nullptr);
+    }
+    Serial.println("\n[OK] Time Synced.");
+  }
+}
+
+void connect_mqtt() {
+  Serial.print("Attempting STRICT mTLS connection...");
+  if (client.connect(mqtt_client_id)) {
+    Serial.println("CONNECTED SECURELY!");
+  } else {
+    Serial.print("failed, rc=");
+    Serial.print(client.state());
+    Serial.println(" - Retrying in 5s...");
+    delay(5000);
+  }
+}
+
+// ==========================================
+// 5. MAIN LOGIC (Runs once per wakeup)
+// ==========================================
+void setup() {
+  Serial.begin(115200);
+  analogReadResolution(12);
+  bootCount++;
+
+  // 1. Take a rapid analog reading immediately upon waking up
+  int rawValue = analogRead(pressurePin);
+  int currentPressure = map(rawValue, 0, 4095, 0, 5000);
+  
+  Serial.print(">>> WOKE UP. Pressure Value: ");
+  Serial.println(currentPressure);
+
+  // 2. Core Battery Logic: Did the pressure change meaningfully?
+  if (abs(currentPressure - lastPressure) >= threshold) {
+    Serial.println("*** SIGNIFICANT PRESSURE CHANGE DETECTED! Booting Network Stack ***");
+    
+    // Boot the power-hungry Wi-Fi only because something changed
+    setup_wifi();
+    syncTime(); 
+
+    espClient.setCACert(root_ca);          
+    espClient.setCertificate(client_cert); 
+    espClient.setPrivateKey(client_key);   
+    espClient.setHandshakeTimeout(45); 
+
+    client.setServer(mqtt_server, 8883);
+    connect_mqtt();
+
+    if (client.connected()) {
+      String payload = String(currentPressure);
+      
+      if (client.publish(mqtt_publish_topic, payload.c_str())) {
+        Serial.print("Secure Publish Successful: ");
+        Serial.println(payload);
+        
+        // Update RTC memory for the next wakeup only on a successful publish
+        lastPressure = currentPressure;
+      } else {
+        Serial.println("Secure Publish Failed!");
+      }
+      delay(500); // Allow packet to fully transmit before pulling the plug
+    }
+    
+    // Clean disconnect
+    client.disconnect();
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+    
+  } else {
+    // If the pressure is essentially the same as 2 seconds ago, skip Wi-Fi entirely!
+    Serial.println("No meaningful change in pressure. Bypassing Wi-Fi to save battery.");
+  }
+
+  // ==========================================
+  // 6. PREPARE FOR DEEP SLEEP
+  // ==========================================
+  
+  // Set the internal hardware timer to wake us up again in X seconds
+  uint64_t sleepTime_us = WAKEUP_INTERVAL_SEC * 1000000ULL; 
+  esp_sleep_enable_timer_wakeup(sleepTime_us);
+  
+  Serial.println("Going to Deep Sleep now... Zzz...");
+  delay(100); 
+  esp_deep_sleep_start();
+}
+
+// ==========================================
+// 7. LOOP (Obsolete in Deep Sleep Architecture)
+// ==========================================
+void loop() {
+  // Never reached. CPU shuts down at the end of setup().
+}
