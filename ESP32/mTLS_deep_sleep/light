@@ -1,0 +1,181 @@
+#include <WiFi.h>
+#include <WiFiClientSecure.h> 
+#include <PubSubClient.h>
+#include <time.h>
+#include <esp_sleep.h>
+
+// ==========================================
+// 1. CONFIGURATION 
+// ==========================================
+const char* ssid = "IoT-Lab";             
+const char* password = "ELEC423_2526!";       
+const char* mqtt_server = "192.168.1.106";  
+
+// CRUCIAL: Must match the Common Name (CN) generated on the Pi
+const char* mqtt_client_id = "ESP32_Bedroom_Light"; 
+const char* mqtt_publish_topic = "home/bedroom/light";  
+
+// Pin 34 is an Input-Only, ADC1 safe pin. Perfect for analog sensors.
+const int lightSensorPin = 34;    
+
+// Polling Interval: How often to check if the room got dark (in seconds)
+const int WAKEUP_INTERVAL_SEC = 10; 
+
+// Light Calibration Thresholds (0-4095)
+// NOTE: You will need to calibrate these numbers based on your specific LDR resistor!
+const int THRESHOLD_DARK = 1000;  // Below this value, the room is considered "Dark"
+const int HYSTERESIS = 200;       // Buffer to prevent flickering if light is right on the edge
+
+// ==========================================
+// 2. RTC MEMORY (Survives Deep Sleep)
+// ==========================================
+// We must remember if the room was BRIGHT or DARK last time we checked
+enum LightState { BRIGHT = 0, DARK = 1 };
+RTC_DATA_ATTR LightState lastLightState = BRIGHT;           
+RTC_DATA_ATTR int bootCount = 0; 
+
+// ==========================================
+// 3. MUTUAL TLS CREDENTIALS
+// ==========================================
+const char* root_ca = R"EOF(
+-----BEGIN CERTIFICATE-----
+[INSERT YOUR ROOT CA HERE]
+-----END CERTIFICATE------
+)EOF";
+
+const char* client_cert = R"EOF(
+-----BEGIN CERTIFICATE-----
+[INSERT YOUR LIGHT SENSOR CLIENT CERT HERE]
+-----END CERTIFICATE-----
+)EOF";
+
+const char* client_key = R"EOF(
+-----BEGIN PRIVATE KEY-----
+[INSERT YOUR LIGHT SENSOR PRIVATE KEY HERE]
+-----END PRIVATE KEY-----
+)EOF";
+
+WiFiClientSecure espClient; 
+PubSubClient client(espClient);
+
+// ==========================================
+// 4. HELPER FUNCTIONS
+// ==========================================
+void setup_wifi() {
+  Serial.print("Connecting to WiFi...");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi connected.");
+}
+
+void syncTime() {
+  // Only sync if the RTC has lost track of time to save battery
+  time_t now = time(nullptr);
+  if (now < 1672531200) { 
+    configTime(0, 0, "pool.ntp.org", "time.google.com");
+    Serial.print("Syncing Clock for TLS (First boot only): ");
+    while (now < 1672531200) { 
+      delay(500);
+      Serial.print(".");
+      now = time(nullptr);
+    }
+    Serial.println("\n[OK] Time Synced.");
+  }
+}
+
+void connect_mqtt() {
+  Serial.print("Attempting STRICT mTLS connection...");
+  if (client.connect(mqtt_client_id)) {
+    Serial.println("CONNECTED SECURELY!");
+  } else {
+    Serial.print("failed, rc=");
+    Serial.print(client.state());
+    Serial.println(" - Retrying in 5s...");
+    delay(5000);
+  }
+}
+
+// ==========================================
+// 5. MAIN LOGIC (Runs once per wakeup)
+// ==========================================
+void setup() {
+  Serial.begin(115200);
+  analogReadResolution(12); // Sets ADC to 0-4095 range
+  bootCount++;
+
+  // 1. Take a rapid analog reading immediately upon waking up
+  int rawLightValue = analogRead(lightSensorPin);
+  
+  Serial.print(">>> WOKE UP. Light ADC Value: ");
+  Serial.println(rawLightValue);
+
+  // 2. Evaluate current state using Hysteresis logic
+  LightState currentLightState = lastLightState; // Default to assuming no change
+
+  if (rawLightValue < THRESHOLD_DARK) {
+      currentLightState = DARK;
+  } else if (rawLightValue > (THRESHOLD_DARK + HYSTERESIS)) {
+      currentLightState = BRIGHT;
+  }
+
+  // 3. Core Battery Logic: Did the state actually change?
+  if (currentLightState != lastLightState) {
+    Serial.println("*** SIGNIFICANT LIGHT CHANGE DETECTED! Booting Network Stack ***");
+    
+    // Boot the power-hungry Wi-Fi only because something changed
+    setup_wifi();
+    syncTime(); 
+
+    espClient.setCACert(root_ca);          
+    espClient.setCertificate(client_cert); 
+    espClient.setPrivateKey(client_key);   
+    espClient.setHandshakeTimeout(45); 
+
+    client.setServer(mqtt_server, 8883);
+    connect_mqtt();
+
+    if (client.connected()) {
+      String payload = (currentLightState == DARK) ? "DARK" : "BRIGHT";
+      
+      if (client.publish(mqtt_publish_topic, payload.c_str())) {
+        Serial.print("Secure Publish Successful: ");
+        Serial.println(payload);
+        
+        // Update RTC memory only on a successful publish
+        lastLightState = currentLightState;
+      } else {
+        Serial.println("Secure Publish Failed!");
+      }
+      delay(500); // Allow packet to fully transmit
+    }
+    
+    // Clean disconnect
+    client.disconnect();
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+    
+  } else {
+    // If the room is still generally the same brightness, bypass Wi-Fi entirely!
+    Serial.println("No meaningful change in light. Bypassing Wi-Fi to save battery.");
+  }
+
+  // ==========================================
+  // 6. PREPARE FOR DEEP SLEEP
+  // ==========================================
+  
+  // Set the internal hardware timer to wake us up again in X seconds
+  uint64_t sleepTime_us = WAKEUP_INTERVAL_SEC * 1000000ULL; 
+  esp_sleep_enable_timer_wakeup(sleepTime_us);
+  
+  Serial.println("Going to Deep Sleep now... Zzz...");
+  delay(100); 
+  esp_deep_sleep_start();
+}
+
+// ==========================================
+// 7. LOOP (Obsolete in Deep Sleep Architecture)
+// ==========================================
+void loop()
