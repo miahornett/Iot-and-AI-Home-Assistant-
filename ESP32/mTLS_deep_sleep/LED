@@ -19,7 +19,7 @@ const char* mqtt_client_id = "ESP32_hallway_led1";
 const char* topic_cmd = "home/hallway/led";
 const char* topic_status = "home/hallway/led/status";
 
-#define LED_PIN    27  
+#define LED_PIN    19  
 #define NUM_LEDS   10  
 
 Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
