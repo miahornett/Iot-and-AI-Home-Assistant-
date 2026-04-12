@@ -3,10 +3,10 @@
 #include <PubSubClient.h>
 #include <time.h>
 
-// --- 1. CONFIGURATION --- 
+//  1. CONFIGURATION 
 const char* ssid = "IoT-Lab";            
 const char* password = "ELEC423_2526!";      
-const char* mqtt_server = "192.168.1.101"; // Verify this IP (.100 vs .101)
+const char* mqtt_server = "192.168.1.101"; //
 
 // CRUCIAL: Must match the Common Name (CN) generated on the Pi
 const char* mqtt_client_id = "ESP32_Bathroom_Bath"; 
@@ -23,7 +23,7 @@ enum WaterState { DRY, WATER_PRESENT, FLOOD_ALERT };
 WaterState currentState = DRY;
 WaterState lastState    = DRY;
 
-// --- 2. MUTUAL TLS CREDENTIALS ---
+// 2. MUTUAL TLS CREDENTIALS 
 
 // 2a. The Root CA (Same as your other sensors)
 const char* root_ca = R"EOF(
@@ -78,7 +78,6 @@ SZX5Yhibhj7SelbQwD17nNxkeyDfzkeNpo5cpSN8htKwIP/smBunCayB65c48g==
 )EOF";
 
 // 2c. The Bathroom Client Private Key
-// MUST MANUALLY ADD 'RSA' TO THE HEADER AND FOOTER
 const char* client_key = R"EOF(
 -----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC5PSTCQZX7eo6g
@@ -114,7 +113,7 @@ IeOwdV1pTCpnKexaeJ2AvPE=
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
-// --- 3. HELPER FUNCTIONS ---
+// 3. HELPER FUNCTIONS
 
 void syncTime() {
   configTime(0, 0, "pool.ntp.org", "time.google.com");
@@ -153,7 +152,7 @@ void reconnect() {
   }
 }
 
-// --- 4. MAIN LOGIC ---
+// 4. MAIN LOGIC
 
 void setup() {
   Serial.begin(115200);
