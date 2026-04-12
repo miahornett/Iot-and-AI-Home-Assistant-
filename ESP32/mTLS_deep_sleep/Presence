@@ -6,9 +6,8 @@
 #include <time.h>
 #include <esp_sleep.h>
 
-// ==========================================
+
 // 1. CONFIGURATION
-// ==========================================
 const char* ssid = "IoT-Lab";            
 const char* password = "ELEC423_2526!";      
 const char* mqtt_server = "192.168.1.106";   
@@ -29,15 +28,13 @@ const int WAKEUP_INTERVAL_SEC = 2;
 String hex_to_send = "FDFCFBFA0800120000006400000004030201"; 
 HardwareSerial HMMDSerial(1); 
 
-// ==========================================
+
 // 2. RTC MEMORY (Survives Deep Sleep)
-// ==========================================
 RTC_DATA_ATTR float lastPublishedDistance = -999.0; 
 RTC_DATA_ATTR int bootCount = 0;
 
-// ==========================================
+
 // 3. MUTUAL TLS CREDENTIALS
-// ==========================================
 
 // 2a. The Root CA
 const char* root_ca = R"EOF(
@@ -126,9 +123,7 @@ SZq1VGqY8xv9Ul0ZIpPVeLMZHNbiIyyF7YaoHkF9pDKGHgR9nWZKEYmx6Hfaerwm
 WiFiClientSecure espClient;          
 PubSubClient client(espClient); 
 
-// ==========================================
 // 4. HELPER FUNCTIONS
-// ==========================================
 void syncTime() {
     time_t now = time(nullptr);
     if (now < 1672531200) { 
@@ -187,9 +182,8 @@ void sendHexData(String hexString) {
     HMMDSerial.write(hexBytes, byteCount); 
 }
 
-// ==========================================
+
 // 5. MAIN LOGIC (Runs once per wakeup)
-// ==========================================
 void setup() {
     // Keep your power-saving 80MHz CPU limit!
     setCpuFrequencyMhz(80); 
@@ -279,9 +273,8 @@ void setup() {
         }
     }
 
-    // ==========================================
+
     // 6. PREPARE FOR DEEP SLEEP
-    // ==========================================
     // Shut down the UART connection cleanly
     HMMDSerial.end();
 
