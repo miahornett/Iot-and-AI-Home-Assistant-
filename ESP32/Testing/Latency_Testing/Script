@@ -3,17 +3,17 @@ import time
 import json
 import ssl
 
-# --- Broker & Network Details ---
+#  Broker & Network Details 
 BROKER_IP = "localhost" # Since it's running on the Pi itself
 PORT = 8883
 TOPIC = "home/bedroom/PIR" # Matched to your ESP32 topic
 
-# --- Security Certificates (Update paths to Dan's Mosquitto config) ---
+# Security Certificates (Update paths to Mosquitto configuraiton)
 CA_CERT = "/etc/mosquitto/ca_certificates/ca.crt"
 CLIENT_CERT = "/etc/mosquitto/certs/client.crt" # Can reuse Pi's certs
 CLIENT_KEY = "/etc/mosquitto/certs/client.key"
 
-# --- Latency Calculation Array ---
+# Latency Calculation Array 
 latency_records = []
 
 def on_connect(client, userdata, flags, rc):
@@ -50,7 +50,7 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f"Error parsing payload: {e}")
 
-# --- MQTT Client Configuration ---
+#MQTT Client Configuration 
 client = mqtt.Client(client_id="Pi_Latency_Tester")
 
 # Enforce mTLS
