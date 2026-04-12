@@ -5,9 +5,8 @@
 #include <esp_sleep.h>
 #include <driver/gpio.h> // Required for Light Sleep GPIO configurations
 
-// ==========================================
+
 // 1. NETWORK & HARDWARE CONFIGURATION 
-// ==========================================
 const char* ssid = "IoT-Lab";            
 const char* password = "ELEC423_2526!";      
 const char* mqtt_server = "192.168.1.106"; 
@@ -18,17 +17,17 @@ const char* mqtt_publish_topic = "home/bedroom/PIR";
 
 const int PIR_PIN = 23; // Fixed PCB Pin - Requires Light Sleep Architecture                 
 
-// ==========================================
+
 // 2. STATE VARIABLES
-// ==========================================
-// In Light Sleep, RAM is not cleared, so we don't need RTC_DATA_ATTR
+
+// In Light Sleep, RAM is not cleared
 enum RoomState { OUT = 0, IN = 1 };
 RoomState currentRoomState = OUT;
 int bootCount = 0; 
 
-// ==========================================
+
 // 3. MUTUAL TLS CRYPTOGRAPHIC CREDENTIALS
-// ==========================================
+
 const char* root_ca = R"EOF(
 -----BEGIN CERTIFICATE-----
 MIIDjzCCAnegAwIBAgIUPkCaskkmR6eJH1JlZyUTGyf2HAQwDQYJKoZIhvcNAQEL
@@ -112,9 +111,9 @@ JiWBVSLNjGiRoxTttJ1FJqg=
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
-// ==========================================
+
 // 4. HELPER FUNCTIONS
-// ==========================================
+
 void setup_wifi() {
     Serial.print("Connecting to WiFi ");
     WiFi.begin(ssid, password);
@@ -150,9 +149,9 @@ void connect_mqtt() {
     }
 }
 
-// ==========================================
+
 // 5. SETUP (Runs only once on physical power-up)
-// ==========================================
+
 void setup() {
     Serial.begin(115200); 
     pinMode(PIR_PIN, INPUT); 
@@ -165,9 +164,9 @@ void setup() {
     esp_sleep_enable_gpio_wakeup();
 }
 
-// ==========================================
+
 // 6. LOOP (Executes upon Wakeup, then Sleeps)
-// ==========================================
+
 void loop() {
     // 1. Check if the PIR is currently triggered
     if (digitalRead(PIR_PIN) == HIGH) {
