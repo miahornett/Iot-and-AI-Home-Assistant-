@@ -1,1 +1,73 @@
+import paho.mqtt.client as mqtt
+import time
+import json
+import ssl
 
+# --- Broker & Network Details ---
+BROKER_IP = "localhost" # Since it's running on the Pi itself
+PORT = 8883
+TOPIC = "home/bedroom/PIR" # Matched to your ESP32 topic
+
+# --- Security Certificates (Update paths to Dan's Mosquitto config) ---
+CA_CERT = "/etc/mosquitto/ca_certificates/ca.crt"
+CLIENT_CERT = "/etc/mosquitto/certs/client.crt" # Can reuse Pi's certs
+CLIENT_KEY = "/etc/mosquitto/certs/client.key"
+
+# --- Latency Calculation Array ---
+latency_records = []
+
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print(f"Connected securely to MQTT broker on port {PORT}")
+        client.subscribe(TOPIC)
+        print(f"Listening to topic: {TOPIC}...\n")
+    else:
+        print(f"Connection failed with code {rc}")
+
+def on_message(client, userdata, msg):
+    # 1. Capture exact arrival time in milliseconds immediately
+    receive_time = int(time.time() * 1000)
+    
+    try:
+        # 2. Parse the JSON payload from the ESP32
+        payload = json.loads(msg.payload.decode('utf-8'))
+        publish_time = payload.get("publish_time")
+        
+        if publish_time:
+            # 3. Calculate "Flight Time"
+            latency = receive_time - publish_time
+            latency_records.append(latency)
+            
+            print(f"--- Event Triggered: {payload.get('sensor')} [{payload.get('state')}] ---")
+            print(f"Published (ESP32): {publish_time}")
+            print(f"Received (RPi 5):  {receive_time}")
+            print(f"Latency:           {latency} ms")
+            
+            # Print the running average
+            avg_latency = sum(latency_records) / len(latency_records)
+            print(f"Average Latency:   {avg_latency:.2f} ms (N={len(latency_records)})\n")
+            
+    except Exception as e:
+        print(f"Error parsing payload: {e}")
+
+# --- MQTT Client Configuration ---
+client = mqtt.Client(client_id="Pi_Latency_Tester")
+
+# Enforce mTLS
+client.tls_set(ca_certs=CA_CERT,
+               certfile=CLIENT_CERT,
+               keyfile=CLIENT_KEY,
+               tls_version=ssl.PROTOCOL_TLSv1_2)
+
+client.on_connect = on_connect
+client.on_message = on_message
+
+print("Initiating NTP Synchronised Latency Test...")
+client.connect(BROKER_IP, PORT, 60)
+
+try:
+    client.loop_forever()
+except KeyboardInterrupt:
+    print("\nTest terminated. Final Average Latency:")
+    if len(latency_records) > 0:
+        print(f"{sum(latency_records) / len(latency_records):.2f} ms over {len(latency_records)} trials.")
