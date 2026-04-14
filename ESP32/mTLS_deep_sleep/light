@@ -4,9 +4,7 @@
 #include <time.h>
 #include <esp_sleep.h>
 
-// ==========================================
-// 1. CONFIGURATION 
-// ==========================================
+// 1. CONFIGURATION
 const char* ssid = "IoT-Lab";            
 const char* password = "ELEC423_2526!";      
 const char* mqtt_server = "192.168.1.101"; // Verify this IP!
@@ -23,18 +21,14 @@ const int hysteresis = 30;
 // Polling Interval: Check the light level every 10 seconds
 const int WAKEUP_INTERVAL_SEC = 10; 
 
-// ==========================================
 // 2. RTC MEMORY (Survives Deep Sleep)
-// ==========================================
 // We must remember the state across sleep cycles so we only boot Wi-Fi on a change
 RTC_DATA_ATTR bool isDaytime = false;        
 RTC_DATA_ATTR bool firstRun = true;          
 RTC_DATA_ATTR int bootCount = 0;
 
-// ==========================================
-// 3. MUTUAL TLS CREDENTIALS
-// ==========================================
 
+// 3. MUTUAL TLS CREDENTIALS
 // 2a. The Root CA 
 const char* root_ca = R"EOF(
 -----BEGIN CERTIFICATE-----
@@ -121,9 +115,8 @@ iFLfPBQ2hZngKSo7A09wGs3z
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
-// ==========================================
+
 // 4. HELPER FUNCTIONS
-// ==========================================
 void syncTime() {
   // Only sync if the RTC lost track of time (saves battery on wakeups)
   time_t now = time(nullptr);
@@ -161,9 +154,7 @@ void connect_mqtt() {
   }
 }
 
-// ==========================================
 // 5. MAIN LOGIC (Runs once per wakeup)
-// ==========================================
 void setup() {
   Serial.begin(115200);
   analogSetAttenuation(ADC_11db); 
@@ -226,10 +217,8 @@ void setup() {
     Serial.println("No state change. Bypassing Wi-Fi to save battery.");
   }
 
-  // ==========================================
+
   // 6. PREPARE FOR DEEP SLEEP
-  // ==========================================
-  
   // Set the internal hardware timer to wake us up again in 10 seconds
   uint64_t sleepTime_us = WAKEUP_INTERVAL_SEC * 1000000ULL; 
   esp_sleep_enable_timer_wakeup(sleepTime_us);
@@ -239,9 +228,8 @@ void setup() {
   esp_deep_sleep_start();
 }
 
-// ==========================================
+
 // 7. LOOP (Obsolete in Deep Sleep Architecture)
-// ==========================================
 void loop() {
   // Never reached. CPU shuts down at the end of setup().
 }
