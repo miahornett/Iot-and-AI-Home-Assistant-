@@ -4,9 +4,8 @@
 #include "esp_wifi.h" 
 #include <time.h>
 
-// ==========================================
+
 // 1. CONFIGURATION
-// ==========================================
 const char* ssid = "IoT-Lab";            
 const char* password = "ELEC423_2526!";      
 const char* mqtt_server = "192.168.1.101"; 
@@ -18,10 +17,7 @@ const char* topic_status = "home/hallway/lock/status";
 
 const int solenoidPin = 23; 
 
-// ==========================================
 // 2. MUTUAL TLS CREDENTIALS
-// ==========================================
-
 // 2a. The Root CA
 const char* root_ca = R"EOF(
 -----BEGIN CERTIFICATE-----
@@ -108,9 +104,7 @@ r9wQmiriwJDIrBNscsx/Jw==
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
-// ==========================================
 // 3. HELPER FUNCTIONS
-// ==========================================
 void syncTime() {
     configTime(0, 0, "pool.ntp.org", "time.google.com");
     Serial.print("Syncing Clock for TLS (May take longer at 80MHz): ");
@@ -145,9 +139,7 @@ void setup_wifi() {
     }
 }
 
-// ==========================================
 // 4. SECURE MQTT COMMAND HANDLER
-// ==========================================
 void callback(char* topic, byte* payload, unsigned int length) {
     String message;
     for (int i = 0; i < length; i++) { message += (char)payload[i]; }
@@ -155,12 +147,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     Serial.println("Secure Lock Command Received: " + message);
 
-    // ==========================================
     // CRITICAL SAFETY LOGIC: FAIL-SECURE (DEFAULT UNLOCKED)
     // Assuming a Normally Open (NO) Solenoid Lock:
     // LOW = No Power = UNLOCKED (Safe state for emergencies/power cuts)
     // HIGH = Power Applied = LOCKED
-    // ==========================================
+  
 
     if (message == "UNLOCK" || message == "U") {
         Serial.println("[EVENT] SECURE Pulse Unlock...");
@@ -186,9 +177,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
 }
 
-// ==========================================
+
 // 5. SECURE RECONNECTION LOGIC
-// ==========================================
 void reconnect() {
     while (!client.connected()) {
         Serial.print("Attempting STRICT mTLS Lock connection...");
@@ -213,9 +203,8 @@ void reconnect() {
     }
 }
 
-// ==========================================
+
 // 6. MAIN SETUP & LOOP
-// ==========================================
 void setup() {
     setCpuFrequencyMhz(80); // Underclock for stability on battery power
     
