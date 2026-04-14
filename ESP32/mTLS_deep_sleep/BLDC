@@ -5,14 +5,11 @@
 #include "esp_wifi.h" // CRITICAL: Required for Modem Sleep
 #include <time.h>
 
-// ==========================================
 // 1. CONFIGURATION 
-// ==========================================
 const char* ssid = "IoT-Lab";            
 const char* password = "ELEC423_2526!";      
 const char* mqtt_server = "192.168.1.106"; // Verify IP!
 
-// *** CHANGE THESE 3 VARIABLES FOR EACH BOARD ***
 const char* mqtt_client_id = "ESP32_bedroom_BLDC"; 
 const char* topic_cmd = "home/bedroom/blinds"; 
 const char* topic_status = "home/bedroom/blinds/status";
@@ -21,10 +18,8 @@ const char* topic_status = "home/bedroom/blinds/status";
 const int STEPS_PER_REV = 2048; 
 Stepper myStepper(STEPS_PER_REV, 18, 21, 19, 22);
 
-// ==========================================
-// 2. MUTUAL TLS CREDENTIALS
-// ==========================================
 
+// 2. MUTUAL TLS CREDENTIALS
 // 2a. The Root CA 
 const char* root_ca = R"EOF(
 -----BEGIN CERTIFICATE-----
@@ -111,9 +106,7 @@ bGssRRbj32UbZvUx1C3HXSw=
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
-// ==========================================
 // 3. HELPER FUNCTIONS
-// ==========================================
 void syncTime() {
   configTime(0, 0, "pool.ntp.org", "time.google.com");
   Serial.print("Syncing Clock for TLS: ");
@@ -150,9 +143,7 @@ void disableMotor() {
   Serial.println("Motor Relaxed (Coil Power Disabled)");
 }
 
-// ==========================================
 // 4. SECURE MQTT COMMAND HANDLER
-// ==========================================
 void callback(char* topic, byte* payload, unsigned int length) {
   String message;
   for (int i = 0; i < length; i++) { message += (char)payload[i]; }
@@ -197,9 +188,7 @@ void reconnect() {
   }
 }
 
-// ==========================================
 // 5. SETUP & LOOP
-// ==========================================
 void setup() {
   Serial.begin(115200);
   
