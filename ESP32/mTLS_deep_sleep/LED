@@ -5,9 +5,7 @@
 #include <time.h>
 #include <esp_wifi.h> // CRITICAL: Required for Automatic Modem Sleep
 
-// ==========================================
-// 1. CONFIGURATION 
-// ==========================================
+// 1. CONFIGURATION
 const char* ssid = "IoT-Lab";            
 const char* password = "ELEC423_2526!";      
 const char* mqtt_server = "192.168.1.106"; // Verify IP!
@@ -26,10 +24,7 @@ Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
-// ==========================================
 // 2. MUTUAL TLS CREDENTIALS
-// ==========================================
-
 // 2a. The Root CA (Always the same)
 const char* root_ca = R"EOF(
 -----BEGIN CERTIFICATE-----
@@ -113,10 +108,7 @@ qot5KiA+gkNK6J1sqpV5iamcEg==
 -----END PRIVATE KEY-----
 )EOF";
 
-// ==========================================
 // 3. HELPER FUNCTIONS
-// ==========================================
-
 void syncTime() {
   configTime(0, 0, "pool.ntp.org", "time.google.com");
   Serial.print("Syncing Clock for TLS: ");
@@ -148,10 +140,7 @@ void setup_wifi() {
   Serial.println("Power Saving: Automatic Modem Sleep Enabled. Listening for commands...");
 }
 
-// ==========================================
 // 4. SECURE MQTT COMMAND HANDLER
-// ==========================================
-
 void callback(char* topic, byte* payload, unsigned int length) {
   String message;
   for (int i = 0; i < length; i++) {
@@ -196,10 +185,7 @@ void reconnect() {
   }
 }
 
-// ==========================================
 // 5. SETUP & CONTINUOUS LOOP
-// ==========================================
-
 void setup() {
   Serial.begin(115200);
   
